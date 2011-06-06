@@ -6,7 +6,7 @@
 
 ## Usage
 
-See the simple example in [`python-cloudformation`(7)])http://devstructure.github.com/python-cloudformation/python-cloudformation.7.html).
+See the simple example in [`python-cloudformation`(7)](http://devstructure.github.com/python-cloudformation/python-cloudformation.7.html).
 
 ## Installation
 
