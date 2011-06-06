@@ -1,4 +1,4 @@
-# `python-cloudformation`
+# python-cloudformation
 
 ## Tools for creating CloudFormation templates
 
