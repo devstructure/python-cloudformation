@@ -34,7 +34,7 @@ DevStructure maintains Debian packages and Python eggs for Blueprint.  See [Inst
 
 ## Documentation
 
-The [Blueprint tutorial](https://devstructure.com/docs/tutorial.html) works through creating and deploying a simple web application via Blueprint.
+Coming soon!
 
 ## Manuals
 
