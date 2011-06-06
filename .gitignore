@@ -1,0 +1,15 @@
+*.deb
+*.egg
+*.egg-info
+*.html
+*.pyc
+*.pyo
+*.swp
+*.tar
+*.tar.gz
+*.template
+.coverage
+build
+control
+dist
+setup.py

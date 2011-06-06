@@ -1,0 +1,70 @@
+python-cloudformation(7) -- tools for creating CloudFormation templates
+=======================================================================
+
+## SYNOPSIS
+
+	import cloudformation
+	import sys
+
+	t = cloudformation.Template()
+	t.Description = 'Demo of python-cloudformation.'
+	t.add_user_data(sys.stdin)
+
+	t.Outputs.add('DemoIp',
+	              Description='Public IP address of DemoInstance',
+	              Value={'Fn::GetAtt': ['DemoInstance', 'PublicIp']})
+
+	t.Parameters.add('DemoParam',
+	                 Description='DemoParam description.',
+	                 Type='String')
+	t.Parameters.add('ImageId',
+	                 Default='ami-e2af508b',
+	                 Description='AMI to use for all EC2 instances.',
+	                 Type='String')
+	t.Parameters.add('InstanceType',
+	                 Default='m1.small',
+	                 Description='Instance type to use for all EC2 instances.',
+	                 Type='String')
+
+	t.Resources.add('DemoInstance',
+	    Properties={'ImageId': {'Ref': 'ImageId'},
+	                'InstanceType': {'Ref': 'InstanceType'},
+	                'KeyName': {'Ref': 'KeyName'},
+	                'SecurityGroups': [{'Ref': 'DemoSecurityGroup'}],
+	                'UserData': t.ref_user_data({'Ref': 'DemoParam'})},
+	    Type='AWS::EC2::Instance')
+
+	t.Resources.add('DemoSecurityGroup',
+	    Properties={
+	        'GroupDescription': 'Unrestricted SSH and HTTP.',
+	        'SecurityGroupIngress': [{'CidrIp': '0.0.0.0/0',
+	                                  'FromPort': '22',
+	                                  'IpProtocol': 'tcp',
+	                                  'ToPort': '22'},
+	                                 {'CidrIp': '0.0.0.0/0',
+	                                  'FromPort': '80',
+	                                  'IpProtocol': 'tcp',
+	                                  'ToPort': '80'}]},
+	    Type='AWS::EC2::SecurityGroup')
+
+	print(t.dumps())
+
+## DESCRIPTION
+
+`python-cloudformation` transforms Python source code representations of AWS CloudFormation templates into JSON.  It's most useful for automating tedious user data manipulation in its very rudimentary "templating language."
+
+After constructing a `cloudformation.Template` object there are two main classes of APIs available.  The first is a `dict`/`set`-like API to `Description`, `Mappings`, `Outputs`, `Parameters`, and `Resources`.  `Description` should be get and set as a string property.  The rest may be treated like dictionaries or sets via the `add` method, which takes a `key` and arbitrary keyword arguments.  These data structures will be faithfully reproduced in the JSON output.
+
+EC2 user data is handled separately.  The `add_user_data` method accepts a file-like object which it reads, parses, and stores for later.  The parsing step is very rudimentary: it splits the input on "`____`".  Later, the `ref_user_data` method will replace the "`____`" markers with its positional parameters in the order they appear.  Use `ref_user_data` as the value of the `UserData` key in the `Properties` dictionary of a `Resource` with `Type='AWS::EC2::Instance'`.
+
+## THEME SONG
+
+Led Zeppelin - "Night Flight"
+
+## AUTHOR
+
+Richard Crowley <richard@devstructure.com>
+
+## SEE ALSO
+
+Blueprint I/O Server can create user data scripts for EC2 instance configuration.  See <http://devstructure.com/docs/endpoints.html#GET-user-data> for more information.
