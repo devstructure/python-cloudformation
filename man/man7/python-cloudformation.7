@@ -1,0 +1,77 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "PYTHON\-CLOUDFORMATION" "7" "June 2011" "DevStructure" "python-cloudformation"
+.
+.SH "NAME"
+\fBpython\-cloudformation\fR \- tools for creating CloudFormation templates
+.
+.SH "SYNOPSIS"
+.
+.nf
+
+import cloudformation
+import sys
+
+t = cloudformation\.Template()
+t\.Description = \'Demo of python\-cloudformation\.\'
+t\.add_user_data(sys\.stdin)
+
+t\.Outputs\.add(\'DemoIp\',
+              Description=\'Public IP address of DemoInstance\',
+              Value={\'Fn::GetAtt\': [\'DemoInstance\', \'PublicIp\']})
+
+t\.Parameters\.add(\'DemoParam\',
+                 Description=\'DemoParam description\.\',
+                 Type=\'String\')
+t\.Parameters\.add(\'ImageId\',
+                 Default=\'ami\-e2af508b\',
+                 Description=\'AMI to use for all EC2 instances\.\',
+                 Type=\'String\')
+t\.Parameters\.add(\'InstanceType\',
+                 Default=\'m1\.small\',
+                 Description=\'Instance type to use for all EC2 instances\.\',
+                 Type=\'String\')
+
+t\.Resources\.add(\'DemoInstance\',
+    Properties={\'ImageId\': {\'Ref\': \'ImageId\'},
+                \'InstanceType\': {\'Ref\': \'InstanceType\'},
+                \'KeyName\': {\'Ref\': \'KeyName\'},
+                \'SecurityGroups\': [{\'Ref\': \'DemoSecurityGroup\'}],
+                \'UserData\': t\.ref_user_data({\'Ref\': \'DemoParam\'})},
+    Type=\'AWS::EC2::Instance\')
+
+t\.Resources\.add(\'DemoSecurityGroup\',
+    Properties={
+        \'GroupDescription\': \'Unrestricted SSH and HTTP\.\',
+        \'SecurityGroupIngress\': [{\'CidrIp\': \'0\.0\.0\.0/0\',
+                                  \'FromPort\': \'22\',
+                                  \'IpProtocol\': \'tcp\',
+                                  \'ToPort\': \'22\'},
+                                 {\'CidrIp\': \'0\.0\.0\.0/0\',
+                                  \'FromPort\': \'80\',
+                                  \'IpProtocol\': \'tcp\',
+                                  \'ToPort\': \'80\'}]},
+    Type=\'AWS::EC2::SecurityGroup\')
+
+print(t\.dumps())
+.
+.fi
+.
+.SH "DESCRIPTION"
+\fBpython\-cloudformation\fR transforms Python source code representations of AWS CloudFormation templates into JSON\. It\'s most useful for automating tedious user data manipulation in its very rudimentary "templating language\."
+.
+.P
+After constructing a \fBcloudformation\.Template\fR object there are two main classes of APIs available\. The first is a \fBdict\fR/\fBset\fR\-like API to \fBDescription\fR, \fBMappings\fR, \fBOutputs\fR, \fBParameters\fR, and \fBResources\fR\. \fBDescription\fR should be get and set as a string property\. The rest may be treated like dictionaries or sets via the \fBadd\fR method, which takes a \fBkey\fR and arbitrary keyword arguments\. These data structures will be faithfully reproduced in the JSON output\.
+.
+.P
+EC2 user data is handled separately\. The \fBadd_user_data\fR method accepts a file\-like object which it reads, parses, and stores for later\. The parsing step is very rudimentary: it splits the input on "\fB____\fR"\. Later, the \fBref_user_data\fR method will replace the "\fB____\fR" markers with its positional parameters in the order they appear\. Use \fBref_user_data\fR as the value of the \fBUserData\fR key in the \fBProperties\fR dictionary of a \fBResource\fR with \fBType=\'AWS::EC2::Instance\'\fR\.
+.
+.SH "THEME SONG"
+Led Zeppelin \- "Night Flight"
+.
+.SH "AUTHOR"
+Richard Crowley \fIrichard@devstructure\.com\fR
+.
+.SH "SEE ALSO"
+Blueprint I/O Server can create user data scripts for EC2 instance configuration\. See \fIhttp://devstructure\.com/docs/endpoints\.html#GET\-user\-data\fR for more information\.
