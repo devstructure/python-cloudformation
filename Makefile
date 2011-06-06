@@ -22,6 +22,7 @@ clean:
 install: install-lib install-man
 
 install-lib:
+	install -d $(DESTDIR)$(pydir)/
 	install -m644 cloudformation.py $(DESTDIR)$(pydir)/
 	PYTHONPATH=$(DESTDIR)$(pydir) $(PYTHON) -mcompileall \
 		$(DESTDIR)$(pydir)/cloudformation.py
