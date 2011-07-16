@@ -22,26 +22,25 @@ clean:
 install: install-lib install-man
 
 install-lib:
-	install -d $(DESTDIR)$(pydir)/
-	install -m644 cloudformation.py $(DESTDIR)$(pydir)/
-	PYTHONPATH=$(DESTDIR)$(pydir) $(PYTHON) -mcompileall \
-		$(DESTDIR)$(pydir)/cloudformation.py
+	find cloudformation -type d -printf %P\\0 | xargs -0r -I__ install -d $(DESTDIR)$(pydir)/cloudformation/__
+	find cloudformation -type f -name \*.py -printf %P\\0 | xargs -0r -I__ install -m644 cloudformation/__ $(DESTDIR)$(pydir)/cloudformation/__
+	PYTHONPATH=$(DESTDIR)$(pydir) $(PYTHON) -mcompileall $(DESTDIR)$(pydir)/cloudformation
 
 install-man:
-	install -d $(DESTDIR)$(mandir)/man7
-	install -m644 man/man7/python-cloudformation.7 $(DESTDIR)$(mandir)/man7/
+	find man -type d -printf %P\\0 | xargs -0r -I__ install -d $(DESTDIR)$(mandir)/__
+	find man -type f -name \*.[12345678].gz -printf %P\\0 | xargs -0r -I__ install -m644 man/__ $(DESTDIR)$(mandir)/__
 
 uninstall: uninstall-lib uninstall-man
 
 uninstall-lib:
-	rm -f \
-		$(DESTDIR)$(pydir)/cloudformation.py \
-		$(DESTDIR)$(pydir)/cloudformation.pyc
-	rmdir -p --ignore-fail-on-non-empty $(DESTDIR)$(pydir)
+	find cloudformation -type f -name \*.py -printf %P\\0 | xargs -0r -I__ rm -f $(DESTDIR)$(pydir)/cloudformation/__ $(DESTDIR)$(pydir)/cloudformation/__c
+	find cloudformation -depth -mindepth 1 -type d -printf %P\\0 | xargs -0r -I__ rmdir $(DESTDIR)$(pydir)/cloudformation/__ || true
+	rmdir -p --ignore-fail-on-non-empty $(DESTDIR)$(pydir)/cloudformation || true
 
 uninstall-man:
-	rm -f $(DESTDIR)$(mandir)/man7/python-cloudformation.7
-	rmdir -p --ignore-fail-on-non-empty $(DESTDIR)$(mandir)/man7
+	find man -type f -name \*.[12345678].gz -printf %P\\0 | xargs -0r -I__ rm -f $(DESTDIR)$(mandir)/__
+	find man -depth -mindepth 1 -type d -printf %P\\0 | xargs -0r -I__ rmdir $(DESTDIR)$(mandir)/__ || true
+	rmdir -p --ignore-fail-on-non-empty $(DESTDIR)$(mandir) || true
 
 build: build-deb build-pypi
 
@@ -80,6 +79,7 @@ deploy-pypi:
 man:
 	find man -name \*.ronn | xargs -n1 ronn \
 		--manual="python-cloudformation" --organization=DevStructure --style=toc
+	find man -name \*.[12345678] | xargs gzip
 
 gh-pages: man
 	mkdir -p gh-pages
