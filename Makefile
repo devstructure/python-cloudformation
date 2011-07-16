@@ -37,28 +37,25 @@ uninstall-lib:
 	rm -f \
 		$(DESTDIR)$(pydir)/cloudformation.py \
 		$(DESTDIR)$(pydir)/cloudformation.pyc
+	rmdir -p --ignore-fail-on-non-empty $(DESTDIR)$(pydir)
 
 uninstall-man:
 	rm -f $(DESTDIR)$(mandir)/man7/python-cloudformation.7
 	rmdir -p --ignore-fail-on-non-empty $(DESTDIR)$(mandir)/man7
 
-build:
-	sudo make deb
-	make pypi
+build: build-deb build-pypi
 
-deb:
-	[ "$$(whoami)" = "root" ] || false
-	m4 \
-		-D__PYTHON__=python$(PYTHON_VERSION) \
-		-D__VERSION__=$(VERSION)-$(BUILD)py$(PYTHON_VERSION) \
-		control.m4 >control
-	debra create debian control
+build-deb:
 	make install prefix=/usr DESTDIR=debian
-	chown -R root:root debian
-	debra build debian python-cloudformation_$(VERSION)-$(BUILD)py$(PYTHON_VERSION)_all.deb
-	debra destroy debian
+	fpm -s dir -t deb -C debian \
+		-n python-cloudformation -v $(VERSION)-$(BUILD)py$(PYTHON_VERSION) -a all \
+		-d python$(PYTHON_VERSION) \
+		-m "Richard Crowley <richard@devstructure.com>" \
+		--url "https://github.com/devstructure/python-cloudformation" \
+		--description "Tools for creating CloudFormation templates."
+	make uninstall prefix=/usr DESTDIR=debian
 
-pypi:
+build-pypi:
 	m4 -D__VERSION__=$(VERSION) setup.py.m4 >setup.py
 	$(PYTHON) setup.py bdist_egg
 
