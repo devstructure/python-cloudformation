@@ -14,10 +14,10 @@ all:
 
 clean:
 	rm -rf \
-		control *.deb \
+		*.deb \
 		setup.py build dist *.egg *.egg-info \
-		*.pyc \
 		man/man*/*.html
+	find . -name \*.pyc -delete
 
 install: install-lib install-man
 
